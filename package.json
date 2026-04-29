@@ -1,0 +1,19 @@
+{
+  "name": "workflow-automation",
+  "version": "0.1.0",
+  "description": "Workflow automation service – email, forms, approvals",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14",
+    "express-validator": "^7.1.0",
+    "dotenv": "^16.4.5",
+    "uuid": "^10.0.0",
+    "morgan": "^1.10.0"
+  }
+}
