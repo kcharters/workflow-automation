@@ -19,6 +19,16 @@ app.use(morgan('dev'))
 app.use('/forms', formsRouter)
 app.use('/approvals', approvalsRouter)
 
+// Root
+app.get('/', (_req, res) => res.json({
+  name: 'Workflow Automation API',
+  endpoints: {
+    health: 'GET /health',
+    forms: 'GET|POST /forms',
+    approvals: 'GET|POST /approvals'
+  }
+}))
+
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime() }))
 
