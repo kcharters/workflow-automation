@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workflow Automation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1e293b;
+      color: #fff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 600; }
+    header span { font-size: 1.4rem; }
+
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      gap: 4px;
+      padding: 0 32px;
+    }
+    nav button {
+      background: none;
+      border: none;
+      padding: 14px 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #64748b;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+      transition: color .15s, border-color .15s;
+    }
+    nav button.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+
+    main { max-width: 780px; margin: 36px auto; padding: 0 20px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 18px; color: #0f172a; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+      font-family: inherit;
+      transition: border-color .15s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .btn {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-ghost { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .alert-success { background: #dcfce7; color: #166534; }
+    .alert-error   { background: #fee2e2; color: #991b1b; }
+    .alert-info    { background: #dbeafe; color: #1e40af; }
+    .hidden { display: none; }
+
+    /* Approvals list */
+    .approval-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .approval-item .info h3 { font-size: 0.93rem; font-weight: 600; margin-bottom: 4px; }
+    .approval-item .info p  { font-size: 0.8rem; color: #64748b; }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-pending  { background: #fef9c3; color: #854d0e; }
+    .badge-approved { background: #dcfce7; color: #166534; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+    .approvers-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .approvers-input-row input { margin-bottom: 0; flex: 1; }
+    #approver-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 99px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tag button {
+      background: none; border: none; cursor: pointer;
+      color: #0369a1; font-size: 0.9rem; line-height: 1; padding: 0;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .toolbar h2 { font-size: 1rem; font-weight: 600; }
+
+    .empty { text-align: center; color: #94a3b8; padding: 32px 0; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>⚡</span>
+  <h1>Workflow Automation</h1>
+</header>
+
+<nav>
+  <button class="active" data-tab="contact">Contact Form</button>
+  <button data-tab="approvals">Approvals</button>
+</nav>
+
+<main>
+
+  <!-- ── Contact Form ──────────────────────────────── -->
+  <section id="tab-contact" class="section active">
+    <div class="card">
+      <h2>Send a Contact Message</h2>
+      <div id="contact-alert" class="alert hidden"></div>
+      <form id="contact-form">
+        <label for="c-name">Name</label>
+        <input id="c-name" type="text" placeholder="Jane Smith" required />
+
+        <label for="c-email">Email</label>
+        <input id="c-email" type="email" placeholder="jane@example.com" required />
+
+        <label for="c-message">Message</label>
+        <textarea id="c-message" placeholder="Your message (min 10 characters)…" required></textarea>
+
+        <button type="submit" class="btn btn-primary" id="contact-submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ── Approvals ─────────────────────────────────── -->
+  <section id="tab-approvals" class="section">
+
+    <!-- Create approval -->
+    <div class="card">
+      <h2>Create Approval Request</h2>
+      <div id="approval-alert" class="alert hidden"></div>
+      <form id="approval-form">
+        <label for="a-title">Title</label>
+        <input id="a-title" type="text" placeholder="e.g. Q2 budget sign-off" required />
+
+        <label for="a-requester">Your Email (Requested By)</label>
+        <input id="a-requester" type="email" placeholder="you@example.com" required />
+
+        <label for="a-details">Details (optional)</label>
+        <textarea id="a-details" placeholder="Additional context…"></textarea>
+
+        <label>Approvers</label>
+        <div class="approvers-input-row">
+          <input id="a-approver-input" type="email" placeholder="approver@example.com" />
+          <button type="button" class="btn btn-ghost btn-sm" id="add-approver-btn">+ Add</button>
+        </div>
+        <div id="approver-tags"></div>
+
+        <button type="submit" class="btn btn-primary" id="approval-submit">Submit Request</button>
+      </form>
+    </div>
+
+    <!-- List approvals -->
+    <div class="card">
+      <div class="toolbar">
+        <h2>All Requests</h2>
+        <button class="btn btn-ghost btn-sm" id="refresh-btn">↻ Refresh</button>
+      </div>
+      <div id="approvals-list"><p class="empty">Loading…</p></div>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // ── Tab switching ──────────────────────────────────
+  const tabs = document.querySelectorAll('nav button')
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active')
+      if (btn.dataset.tab === 'approvals') loadApprovals()
+    })
+  })
+
+  // ── Helpers ────────────────────────────────────────
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id)
+    el.className = `alert alert-${type}`
+    el.textContent = msg
+    el.classList.remove('hidden')
+    if (type !== 'error') setTimeout(() => el.classList.add('hidden'), 5000)
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId)
+    btn.disabled = loading
+    btn.textContent = loading ? 'Sending…' : btn.dataset.label
+  }
+
+  document.getElementById('contact-submit').dataset.label = 'Send Message'
+  document.getElementById('approval-submit').dataset.label = 'Submit Request'
+
+  // ── Contact form ───────────────────────────────────
+  document.getElementById('contact-form').addEventListener('submit', async e => {
+    e.preventDefault()
+    setLoading('contact-submit', true)
+    try {
+      const res = await fetch('/forms/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:    document.getElementById('c-name').value,
+          email:   document.getElementById('c-email').value,
+          message: document.getElementById('c-message').value,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msgs = data.errors ? data.errors.map(e => e.msg).join(', ') : data.error
+        showAlert('contact-alert', 'error', msgs)
+      } else {
+        showAlert('contact-alert', 'success', 'Message sent successfully!')
+        e.target.reset()
+      }
+    } catch {
+      showAlert('contact-alert', 'error', 'Network error. Please try again.')
+    }
+    setLoading('contact-submit', false)
+  })
+
+  // ── Approver tags ──────────────────────────────────
+  const approvers = []
+
+  function renderTags() {
+    const container = document.getElementById('approver-tags')
+    container.innerHTML = approvers.map((email, i) => `
+      <span class="tag">${email}
+        <button type="button" data-i="${i}" aria-label="Remove">×</button>
+      </span>`).join('')
+    container.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        approvers.splice(Number(btn.dataset.i), 1)
+        renderTags()
+      })
+    })
+  }
+
+  document.getElementById('add-approver-btn').addEventListener('click', () => {
+    const input = document.getElementById('a-approver-input')
+    const val = input.value.trim()
+    if (val && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) && !approvers.includes(val)) {
+      approvers.push(val)
+      renderTags()
+      input.value = ''
+    }
+    input.focus()
+  })
+
+  document.getElementById('a-approver-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('add-approver-btn').click() }
+  })
+
+  // ── Create approval ────────────────────────────────
+  document.getElementById('approval-form').addEventListener('submit', async e => {
+    e.preventDefault()
+    if (approvers.length === 0) {
+      showAlert('approval-alert', 'error', 'Add at least one approver.')
+      return
+    }
+    setLoading('approval-submit', true)
+    try {
+      const res = await fetch('/approvals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title:       document.getElementById('a-title').value,
+          requestedBy: document.getElementById('a-requester').value,
+          details:     document.getElementById('a-details').value,
+          approvers,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msgs = data.errors ? data.errors.map(e => e.msg).join(', ') : data.error
+        showAlert('approval-alert', 'error', msgs)
+      } else {
+        showAlert('approval-alert', 'success', `Request created! ID: ${data.id}`)
+        e.target.reset()
+        approvers.length = 0
+        renderTags()
+        loadApprovals()
+      }
+    } catch {
+      showAlert('approval-alert', 'error', 'Network error. Please try again.')
+    }
+    setLoading('approval-submit', false)
+  })
+
+  // ── Load approvals list ────────────────────────────
+  async function loadApprovals() {
+    const container = document.getElementById('approvals-list')
+    container.innerHTML = '<p class="empty">Loading…</p>'
+    try {
+      const res = await fetch('/approvals')
+      const list = await res.json()
+      if (!list.length) {
+        container.innerHTML = '<p class="empty">No approval requests yet.</p>'
+        return
+      }
+      container.innerHTML = list.slice().reverse().map(a => `
+        <div class="approval-item">
+          <div class="info">
+            <h3>${escHtml(a.title)}</h3>
+            <p>By ${escHtml(a.requestedBy)} &middot; ${new Date(a.createdAt).toLocaleString()}</p>
+            ${a.details ? `<p style="margin-top:4px">${escHtml(a.details)}</p>` : ''}
+          </div>
+          <span class="badge badge-${a.status}">${a.status}</span>
+        </div>`).join('')
+    } catch {
+      container.innerHTML = '<p class="empty" style="color:#ef4444">Failed to load approvals.</p>'
+    }
+  }
+
+  document.getElementById('refresh-btn').addEventListener('click', loadApprovals)
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  }
+</script>
+</body>
+</html>
